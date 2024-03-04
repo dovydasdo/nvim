@@ -90,6 +90,8 @@ P.S. You can delete this when you're done too. It's your config now! :)
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
+vim.wo.relativenumber = true
+
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
@@ -146,7 +148,7 @@ vim.opt.inccommand = 'split'
 vim.opt.cursorline = true
 
 -- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 10
+vim.opt.scrolloff = 20
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
@@ -280,6 +282,7 @@ require('lazy').setup {
         ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
         ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
         ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
+        ['<leader>g'] = { name = '[G]o plugin commands', _ = 'which_key_ignore' },
       }
     end,
   },
@@ -815,6 +818,70 @@ require('lazy').setup {
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
   --    For additional information see: :help lazy.nvim-lazy.nvim-structuring-your-plugins
   -- { import = 'custom.plugins' },
+  {
+    'm4xshen/autoclose.nvim',
+    config = function()
+      require('autoclose').setup()
+    end,
+  },
+  {
+    'ray-x/go.nvim',
+    dependencies = { -- optional packages
+      'ray-x/guihua.lua',
+      'neovim/nvim-lspconfig',
+      'nvim-treesitter/nvim-treesitter',
+    },
+    config = function()
+      require('go').setup()
+    end,
+    event = { 'CmdlineEnter' },
+    ft = { 'go', 'gomod' },
+    build = ':lua require("go.install").update_all_sync()', -- if you need to install/update all binaries
+    keys = {
+      {
+        '<Leader>gc',
+        '<cmd>GoCmt<cr><cr>',
+        desc = 'go comment',
+        id = 'go_comment',
+      },
+      {
+        '<Leader>gr',
+        '<cmd>GoRename<cr>',
+        desc = 'go rename under cursor',
+        id = 'go_rename',
+      },
+      {
+        '<Leader>gR',
+        '<cmd>Gomvp<cr>',
+        desc = 'go rename module under cursor',
+        id = 'go_rename_module',
+      },
+      {
+        '<Leader>gta',
+        '<cmd>GoAddTag<cr>',
+        desc = 'go add tags to struct',
+        id = 'go_tags_add',
+      },
+      {
+        '<Leader>gtr',
+        '<cmd>GoRmTag<cr>',
+        desc = 'go remove tags to struct',
+        id = 'go_tags_remove',
+      },
+      {
+        '<Leader>gf',
+        '<cmd>GoFillStruct<cr>',
+        desc = 'go fill struct',
+        id = 'go_fill_struct',
+      },
+      {
+        '<Leader>gF',
+        '<cmd>GoFillSwitch<cr>',
+        desc = 'go fill switch',
+        id = 'go_fill_switch',
+      },
+    },
+  },
 }
 
 -- The line beneath this is called `modeline`. See `:help modeline`
