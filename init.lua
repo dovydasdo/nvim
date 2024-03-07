@@ -882,7 +882,29 @@ require('lazy').setup {
       },
     },
   },
+  {
+    'folke/flash.nvim',
+    event = 'VeryLazy',
+    opts = {},
+    -- stylua: ignore
+    keys = {
+      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash", id="" },
+      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" , id="" },
+      { "r", mode = "o", function() require("flash").remote() end, desc = "Remote Flash", id="" },
+      { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter Search", id="" },
+      { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search", id=""},
+    },
+  },
+  {
+    'L3MON4D3/LuaSnip',
+    -- follow latest release.
+    version = 'v2.2.0', -- Replace <CurrentMajor> by the latest released major (first number of latest release)
+    -- install jsregexp (optional!).
+    build = 'make install_jsregexp',
+  },
 }
+
+require('luasnip.loaders.from_lua').load { paths = '~/.config/nvim/lua/snippets/' }
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
