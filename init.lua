@@ -252,6 +252,66 @@ require('lazy').setup {
         changedelete = { text = '~' },
       },
     },
+    config = function()
+      require('gitsigns').setup {
+        on_attach = function(bufnr)
+          local gs = package.loaded.gitsigns
+
+          local function map(mode, l, r, opts)
+            opts = opts or {}
+            opts.buffer = bufnr
+            vim.keymap.set(mode, l, r, opts)
+          end
+
+          -- Navigation
+          map('n', ']c', function()
+            if vim.wo.diff then
+              return ']c'
+            end
+            vim.schedule(function()
+              gs.next_hunk()
+            end)
+            return '<Ignore>'
+          end, { expr = true, desc = 'go to next hunk' })
+
+          map('n', '[c', function()
+            if vim.wo.diff then
+              return '[c'
+            end
+            vim.schedule(function()
+              gs.prev_hunk()
+            end)
+            return '<Ignore>'
+          end, { expr = true, desc = 'go to prev hunk' })
+
+          -- Actions
+          map('n', '<leader>hs', gs.stage_hunk, { desc = 'stage hunk' })
+          map('n', '<leader>hr', gs.reset_hunk, { desc = 'reset hunk' })
+          map('v', '<leader>hs', function()
+            gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
+          end, { desc = 'stage hunk' })
+          map('v', '<leader>hr', function()
+            gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
+          end, { desc = 'reset hunk' })
+          map('n', '<leader>hS', gs.stage_buffer, { desc = 'stage buffer' })
+          map('n', '<leader>hu', gs.undo_stage_hunk, { desc = 'undo stage hunk' })
+          map('n', '<leader>hR', gs.reset_buffer, { desc = 'reset buffer' })
+          map('n', '<leader>hp', gs.preview_hunk, { desc = 'preview hunk' })
+          map('n', '<leader>hb', function()
+            gs.blame_line { full = true }
+          end, { desc = 'git blame' })
+          map('n', '<leader>tb', gs.toggle_current_line_blame, { desc = 'toggle line blame' })
+          map('n', '<leader>hd', gs.diffthis, { desc = 'diff this' })
+          map('n', '<leader>hD', function()
+            gs.diffthis '~'
+          end, { desc = 'diff this ~' })
+          map('n', '<leader>td', gs.toggle_deleted, { desc = 'toggle deleted' })
+
+          -- Text object
+          map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>')
+        end,
+      }
+    end,
   },
 
   -- NOTE: Plugins can also be configured to run lua code when they are loaded.
@@ -283,6 +343,7 @@ require('lazy').setup {
         ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
         ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
         ['<leader>g'] = { name = '[G]o plugin commands', _ = 'which_key_ignore' },
+        ['<leader>h'] = { name = 'git [H]unk actions', _ = 'which_key_ignore' },
       }
     end,
   },
@@ -724,12 +785,12 @@ require('lazy').setup {
     -- change the command in the config to whatever the name of that colorscheme is
     --
     -- If you want to see what colorschemes are already installed, you can use `:Telescope colorscheme`
-    'folke/tokyonight.nvim',
+    'bluz71/vim-moonfly-colors',
     lazy = false, -- make sure we load this during startup if it is your main colorscheme
     priority = 1000, -- make sure to load this before all the other start plugins
     config = function()
       -- Load the colorscheme here
-      vim.cmd.colorscheme 'tokyonight-night'
+      vim.cmd.colorscheme 'moonfly'
 
       -- You can configure highlights by doing something like
       vim.cmd.hi 'Comment gui=none'
@@ -907,6 +968,27 @@ require('lazy').setup {
 }
 
 require('luasnip.loaders.from_lua').load { paths = '~/.config/nvim/lua/snippets/' }
+
+vim.api.nvim_create_autocmd('BufWritePre', {
+  pattern = { '*.go' },
+  callback = function()
+    local params = vim.lsp.util.make_range_params(nil, vim.lsp.util._get_offset_encoding())
+    params.context = { only = { 'source.organizeImports' } }
+
+    local result = vim.lsp.buf_request_sync(0, 'textDocument/codeAction', params, 3000)
+    for _, res in pairs(result or {}) do
+      for _, r in pairs(res.result or {}) do
+        if r.edit then
+          vim.lsp.util.apply_workspace_edit(r.edit, vim.lsp.util._get_offset_encoding())
+        else
+          vim.lsp.buf.execute_command(r.command)
+        end
+      end
+    end
+  end,
+})
+
+vim.keymap.set('n', '<leader><leader>r', '<cmd>source ~/.config/nvim/lua/snippets/go_snips.lua<CR>')
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
