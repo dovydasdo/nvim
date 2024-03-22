@@ -966,6 +966,12 @@ require('lazy').setup {
     -- install jsregexp (optional!).
     build = 'make install_jsregexp',
   },
+  {
+    'stevearc/oil.nvim',
+    opts = {},
+    -- Optional dependencies
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+  },
 }
 
 require('luasnip.loaders.from_lua').load { paths = '~/.config/nvim/lua/snippets/' }
@@ -990,6 +996,9 @@ vim.api.nvim_create_autocmd('BufWritePre', {
 })
 
 vim.keymap.set('n', '<leader><leader>r', '<cmd>source ~/.config/nvim/lua/snippets/go_snips.lua<CR>')
+vim.keymap.set('n', '<leader>f', function()
+  require('oil').open()
+end)
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
